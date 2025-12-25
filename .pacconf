@@ -1,5 +1,6 @@
 base
 base-devel
+blueman
 bluez
 bluez-utils
 bob
@@ -43,6 +44,7 @@ wofi
 xorg-xwayland
 yay
 yay-debug
+zathura
 zoxide
 zram-generator
 zsh
