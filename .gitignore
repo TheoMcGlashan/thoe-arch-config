@@ -1,6 +1,9 @@
 *
 !.gitignore
 
+!.pacconf
+!pacman-sync.sh
+
 !bob/
 !bob/**
 
