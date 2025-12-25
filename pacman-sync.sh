@@ -47,9 +47,32 @@ is_aur_pkg() {
 [ "$#" -eq 1 ] || usage
 
 case "$1" in
+
   push)
-    pacman -Qe | cut -f 1 -d " " > "$PACCONF"
-    echo "pacconf updated"
+    TMP_NEW="$(mktemp)"
+    TMP_OLD="$(mktemp)"
+
+    pacman -Qqe > "$TMP_NEW"
+
+    if [ -f "$PACCONF" ]; then
+      clean_pacconf_stream > "$TMP_OLD"
+    else
+      : > "$TMP_OLD"
+    fi
+
+    # Packages present in NEW but not in OLD
+    ADDED="$(grep -Fxv -f "$TMP_OLD" "$TMP_NEW" || true)"
+
+    cp "$TMP_NEW" "$PACCONF"
+
+    rm -f "$TMP_NEW" "$TMP_OLD"
+
+    if [ -n "$ADDED" ]; then
+      echo "Packages added to $PACCONF:"
+      echo "$ADDED"
+    else
+      echo "No packages were added to $PACCONF."
+    fi
     ;;
 
   pull)
