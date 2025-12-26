@@ -14,10 +14,8 @@ git
 github-cli
 gst-plugin-pipewire
 hyprland
-hyprpaper
 intel-ucode
 keyd
-kitty
 libpulse
 linux
 linux-firmware
@@ -34,14 +32,15 @@ pyright
 qt5-wayland
 qt6-wayland
 qutebrowser
+sof-firmware
 steam
 tlp
 ttf-jetbrains-mono-nerd
+vi
 waybar
 wireplumber
 wl-clipboard
 wofi
-xorg-xwayland
 yay
 yay-debug
 zathura
