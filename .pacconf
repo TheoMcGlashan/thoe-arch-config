@@ -5,6 +5,7 @@ bluez
 bluez-utils
 bob
 brightnessctl
+cmake
 discord
 dolphin
 efibootmgr
@@ -14,6 +15,7 @@ git
 github-cli
 gst-plugin-pipewire
 hyprland
+hyprpaper
 intel-ucode
 keyd
 libpulse
@@ -32,7 +34,6 @@ pyright
 qt5-wayland
 qt6-wayland
 qutebrowser
-sof-firmware
 steam
 tlp
 ttf-jetbrains-mono-nerd
@@ -41,6 +42,7 @@ waybar
 wireplumber
 wl-clipboard
 wofi
+xorg-xwayland
 yay
 yay-debug
 zathura

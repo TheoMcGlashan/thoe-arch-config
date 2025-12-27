@@ -10,140 +10,49 @@ base
 linux
 linux-firmware
 pacman
-glibc
+libc
 systemd
 "
 
 usage() {
-  echo "Usage: $0 push | pull | clear" >&2
-  exit 1
-}
-
-confirm() {
-  printf "%s [y/N]: " "$1"
-  read ans
-  case "$ans" in
-    y|Y|yes|YES) ;;
-    *) echo "Aborted."; exit 1 ;;
-  esac
-}
-
-is_protected() {
-  printf "%s\n" "$PROTECTED_PKGS" | grep -qx "$1"
+	echo "Usage: $0 info | sync " >&2
+	echo 1
 }
 
 clean_pacconf_stream() {
   grep -v '^[[:space:]]*$' "$PACCONF" | grep -v '^[[:space:]]*#'
 }
 
-is_repo_pkg() {
-  pacman -Si "$1" >/dev/null 2>&1
-}
-
-is_aur_pkg() {
-  yay -Si "$1" >/dev/null 2>&1
-}
-
 [ "$#" -eq 1 ] || usage
+
+TMP_NEW="$(mktemp)"
+TMP_OLD="$(mktemp)"
+
+pacman -Qqe > "$TMP_NEW"
+
+if [ -f "$PACCONF" ]; then
+	clean_pacconf_stream > "$TMP_OLD"
+else
+	: > "$TMP_OLD"
+fi
+
+
+# Packages present in NEW but not in OLD
+ADDED="$(grep -Fxv -f "$TMP_OLD" "$TMP_NEW" || true)"
+
+# Packages present in OLD but not in NEW
+REMOVED="$(grep -Fxv -f "$TMP_NEW" "$TMP_OLD" || true)"
 
 case "$1" in
 
-  push)
-    TMP_NEW="$(mktemp)"
-    TMP_OLD="$(mktemp)"
+	info)
+		echo "Packages installed locally not in .pacconf: $ADDED"
+		echo "Packages in .pacconf not installed locally: $REMOVED"
+	;;
 
-    pacman -Qqe > "$TMP_NEW"
-
-    if [ -f "$PACCONF" ]; then
-      clean_pacconf_stream > "$TMP_OLD"
-    else
-      : > "$TMP_OLD"
-    fi
-
-    # Packages present in NEW but not in OLD
-    ADDED="$(grep -Fxv -f "$TMP_OLD" "$TMP_NEW" || true)"
-
-    cp "$TMP_NEW" "$PACCONF"
-
-    rm -f "$TMP_NEW" "$TMP_OLD"
-
-    if [ -n "$ADDED" ]; then
-      echo "Packages added to $PACCONF:"
-      echo "$ADDED"
-    else
-      echo "No packages were added to $PACCONF."
-    fi
-    ;;
-
-  pull)
-    [ -f "$PACCONF" ] || { echo "$PACCONF not found" >&2; exit 1; }
-    command -v yay >/dev/null 2>&1 || {
-      echo "Error: yay is required for AUR support" >&2
-      exit 1
-    }
-
-    clean_pacconf_stream | while IFS= read -r pkg; do
-      if is_repo_pkg "$pkg"; then
-        pacman -S --needed "$pkg"
-      elif is_aur_pkg "$pkg"; then
-        yay -S --needed "$pkg"
-      else
-        echo "Warning: package not found in repos or AUR: $pkg" >&2
-      fi
-    done
-    ;;
-
-  clear)
-    [ -f "$PACCONF" ] || { echo "$PACCONF not found" >&2; exit 1; }
-    [ -s "$PACCONF" ] || { echo "$PACCONF is empty; refusing to proceed" >&2; exit 1; }
-
-    command -v yay >/dev/null 2>&1 || {
-      echo "Error: yay is required for AUR support" >&2
-      exit 1
-    }
-
-    echo "Scanning for explicitly installed packages not in $PACCONF..."
-    echo
-
-    TO_REMOVE_REPO=""
-    TO_REMOVE_AUR=""
-
-    pacman -Qqe | while IFS= read -r pkg; do
-      if is_protected "$pkg"; then
-        continue
-      fi
-
-      if ! clean_pacconf_stream | grep -qx "$pkg"; then
-        if is_aur_pkg "$pkg"; then
-          echo "  would remove (AUR):  $pkg"
-          TO_REMOVE_AUR="$TO_REMOVE_AUR $pkg"
-        else
-          echo "  would remove (repo): $pkg"
-          TO_REMOVE_REPO="$TO_REMOVE_REPO $pkg"
-        fi
-      fi
-    done
-
-    if [ -z "$TO_REMOVE_REPO$TO_REMOVE_AUR" ]; then
-      echo
-      echo "System already matches $PACCONF; nothing to remove."
-      exit 0
-    fi
-
-    echo
-    echo "Dry run complete."
-    confirm "Proceed with removing the listed packages?"
-
-    for pkg in $TO_REMOVE_REPO; do
-      pacman -Rns "$pkg"
-    done
-
-    for pkg in $TO_REMOVE_AUR; do
-      yay -Rns "$pkg"
-    done
-    ;;
-
-  *)
-    usage
-    ;;
+	sync)
+		pacman -Qqe > $PACCONF
+		echo "Packagess added to .pacconf: $ADDED"
+		echo 	
+	;;
 esac
