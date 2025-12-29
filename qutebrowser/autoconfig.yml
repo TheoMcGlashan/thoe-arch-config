@@ -6,8 +6,16 @@
 
 config_version: 2
 settings:
+  colors.webpage.darkmode.algorithm:
+    global: brightness-rgb
+  colors.webpage.darkmode.contrast:
+    global: 0.0
   colors.webpage.darkmode.enabled:
-    global: true
+    global: false
+  colors.webpage.darkmode.policy.images:
+    global: smart
+  colors.webpage.darkmode.policy.page:
+    global: smart
   colors.webpage.preferred_color_scheme:
     global: dark
   content.javascript.clipboard:
@@ -16,3 +24,5 @@ settings:
     https://github.com: access-paste
   content.notifications.enabled:
     https://www.youtube.com: false
+  content.register_protocol_handler:
+    https://mail.google.com?extsrc=mailto&url=%25s: true
